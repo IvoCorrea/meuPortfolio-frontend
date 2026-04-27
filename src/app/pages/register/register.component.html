@@ -1,0 +1,56 @@
+<div class="register-container">
+    <div class="register-box">
+        <h1>MeuPortfolio</h1>
+        <p class="subtitle"> Gerencie seus investimentos </p>
+
+        <form (ngSubmit)="onRegister()">
+            <div class="form-group">
+
+                <label for="username">Username</label>
+                <input type="text" name="username" id="username" [(ngModel)]="userName"
+                    placeholder="Seu nome de Usuario" required>
+
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" [(ngModel)]="email" placeholder="Seuemail@exemplo.com" required>
+            </div>
+
+            <div class="form-group">
+
+                <label for="password">Senha</label>
+                <input type="password" name="password" id="password" [(ngModel)]="password" placeholder="Sua senha"
+                    required>
+            </div>
+
+            <div class="form-group">
+
+                <label for="confirmed-password">Confirme sua senha</label>
+                <input type="password" name="confirmed-password" id="confirmed-password" [(ngModel)]="confirmPassword"
+                    placeholder="Digite sua senha novamente" required>
+            </div>
+
+            <button type="submit" [disabled]="isLoading">
+                {{ isLoading ? 'Criando...' : 'Criar'}}
+            </button>
+
+            @if (success) {
+                <div class="success-message">
+                    {{ success }}
+                </div>
+            }
+
+            @if (error) {
+                <div class="error-message">
+                    {{ error }}
+                </div>
+            }
+
+            <p class="login-link">
+                Já tem uma conta? <a routerLink="/login">Entre aqui</a>
+            </p>
+            
+        </form>
+    </div>
+</div>
