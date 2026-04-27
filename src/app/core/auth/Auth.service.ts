@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, catchError, Observable, tap, throwError } from "rxjs";
-import { AuthResponse, LoginRequest, User } from "./Auth.model";
+import { AuthResponse, LoginRequest, RegisterRequest, User } from "./Auth.model";
 
 @Injectable({
     providedIn: "root",
@@ -31,13 +31,28 @@ export class AuthService {
                     this.isAuthenticatedSubject.next(true);
                 }),
                 catchError((error) => {
-                    console.error("Login error", error)
-                    return throwError(() => error)
+                    console.error("Login error", error);
+                    return throwError(() => error);
                 })
             );
     }
 
-    public logout():void {
+    public register(email: string, username: string, password: string): Observable<AuthResponse> {
+        const request: RegisterRequest = { email, password, username };
+
+        return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, request).pipe(
+            tap((response) => {
+                this.saveTokens(response.accessToken, response.refreshToken);
+                this.isAuthenticatedSubject.next(true);
+            }),
+            catchError((error) => {
+                console.error("Register error", error);
+                return throwError(() => error);
+            })
+        );
+    }
+
+    public logout(): void {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         this.isAuthenticatedSubject.next(false);
@@ -57,10 +72,10 @@ export class AuthService {
                     this.saveTokens(response.accessToken, response.refreshToken);
                 }), catchError((error) => {
                     this.logout();
-                    return throwError(() => error)
+                    return throwError(() => error);
                 })
             )
-        }
+    }
     /**
     * Verifica se tem um token válido no Local Storage
     */
@@ -87,7 +102,7 @@ export class AuthService {
      */
     private saveTokens(accessToken: string, refreshToken: string): void {
         localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken)
+        localStorage.setItem("refreshToken", refreshToken);
     }
 
     /**
