@@ -1,0 +1,123 @@
+<div class="dashboard-container">
+  <!-- HEADER -->
+  <header class="dashboard-header">
+  <div class="header-left">
+    <h1>meuPortfolio</h1>
+  </div>
+  
+  <div class="header-center">
+    <select 
+      id="portfolio-select" 
+      (change)="selectPortfolio($any($event.target).value)"
+      [disabled]="portfolios.length === 0"
+    >
+      <option value="">Selecione um portfolio</option>
+      @for (portfolio of portfolios; track portfolio.id) {
+        <option [value]="portfolio.id">{{ portfolio.name }}</option>
+      }
+    </select>
+    <button class="btn-create-header" (click)="createPortfolio()">+ Novo</button>
+  </div>
+  
+  <div class="header-right">
+    <span class="user-greeting">Bem-vindo!</span>
+    <button class="btn-logout" (click)="logout()">Sair</button>
+  </div>
+</header>
+
+  <!-- MAIN CONTENT -->
+  <main class="dashboard-main">
+
+    <!-- LOADING STATE -->
+    @if (isLoading) {
+      <div class="loading">Carregando...</div>
+    }
+
+    <!-- ERROR STATE -->
+    @if (error) {
+      <div class="error-message">{{ error }}</div>
+    }
+
+    <!-- EMPTY STATE -->
+    @if (!isLoading && !selectedPortfolio && portfolios.length > 0) {
+      <div class="empty-state">
+        <p>Selecione um portfolio acima</p>
+      </div>
+    }
+
+    @if (!isLoading && portfolios.length === 0) {
+      <div class="empty-state">
+        <p>Você ainda não tem portfolios. Crie um novo!</p>
+        <button class="btn-primary" (click)="createPortfolio()">Criar Portfolio</button>
+      </div>
+    }
+
+    <!-- PORTFOLIO CONTENT -->
+    @if (selectedPortfolio && !isLoading) {
+      <div class="portfolio-content">
+        <!-- PORTFOLIO INFO -->
+        <div class="portfolio-header">
+          <div>
+            <h2>{{ selectedPortfolio.name }}</h2>
+            @if (selectedPortfolio.description) {
+              <p class="description">{{ selectedPortfolio.description }}</p>
+            }
+          </div>
+          <button class="btn-delete-portfolio" (click)="deletePortfolio(selectedPortfolio.id)">
+            Deletar Portfolio
+          </button>
+        </div>
+
+        <!-- ASSETS SECTION -->
+        <div class="assets-section">
+          <div class="assets-header">
+            <h3>Ativos</h3>
+            <button class="btn-add-asset" (click)="createAsset()">+ Adicionar Ativo</button>
+          </div>
+
+          @if (selectedPortfolio.assets && selectedPortfolio.assets.length > 0) {
+            <div class="assets-list">
+              @for (asset of selectedPortfolio.assets; track asset.id) {
+                <div class="asset-card">
+                  <div class="asset-info">
+                    <h4>{{ asset.name }}</h4>
+                    <p class="asset-symbol">{{ asset.symbol }}</p>
+                  </div>
+                  
+                  <div class="asset-stats">
+                    <div class="stat">
+                      <span class="label">Quantidade</span>
+                      <span class="value">{{ asset.quantity }}</span>
+                    </div>
+                    <div class="stat">
+                      <span class="label">Preço Unitário</span>
+                      <span class="value">R$ {{ asset.purchasePrice | number: '1.2-2' }}</span>
+                    </div>
+                    <div class="stat">
+                      <span class="label">Preço Atual</span>
+                      <span class="value">R$ {{ asset.currentPrice | number: '1.2-2' }}</span>
+                    </div>
+                    <div class="stat total">
+                      <span class="label">Valor Total</span>
+                      <span class="value">R$ {{ (asset.quantity * asset.currentPrice) | number: '1.2-2' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="asset-actions">
+                    <button class="btn-edit" (click)="createPortfolio()">Editar</button>
+                    <button class="btn-delete" (click)="deleteAsset(selectedPortfolio.id,asset.id)">Deletar</button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-assets">
+              <p>Este portfolio ainda não tem ativos</p>
+              <button class="btn-primary" (click)="createPortfolio()">Adicionar Ativo</button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </main>
+</div>
