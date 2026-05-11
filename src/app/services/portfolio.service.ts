@@ -2,24 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-export interface Asset {
-  id: string;
-  symbol: string;
-  name: string;
-  quantity: number;
-  purchasePrice: number;
-  currentPrice: number;
-  totalValue?: number;
-}
-
-export interface Portfolio {
-  id: string;
-  name: string;
-  description?: string;
-  assets: Asset[];
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { Asset, Portfolio } from './portfolio.model';
 
 @Injectable({
   providedIn: 'root',
