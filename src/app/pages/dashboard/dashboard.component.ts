@@ -1,13 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { Portfolio, PortfolioService } from '../../services/portfolio.service';
+import { PortfolioService } from '../../services/portfolio.service';
 import { AuthService } from '../../core/auth/Auth.service';
 import { Router } from '@angular/router';
+
+import { Asset, Portfolio } from '../../services/portfolio.model';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard.component',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -16,6 +19,20 @@ export class DashboardComponent {
   protected selectedPortfolio: Portfolio | null = null;
   protected isLoading: boolean = false;
   protected error: string = '';
+
+  protected showCreatePortfolioModal: boolean = false;
+  protected showAddAssetModal: boolean = false;
+
+  protected portfolioName: string = '';
+
+  protected assetData: Partial<Asset> = {
+    ticker: '',
+    name: '',
+    type: 'ACAO',
+    quantity: 0,
+    purchasePrice: 0,
+    currentPrice: 0
+  };
 
   // Services
   private authService = inject(AuthService);
@@ -75,11 +92,49 @@ export class DashboardComponent {
   }
 
   protected createPortfolio() {
+    if (!this.portfolioName) {
+      this.error = "Nome do Portfolio invalido";
+      return;
+    }
+
+    this.isLoading = true;
+
+    this.portfolioService.createPortfolio({
+      name: this.portfolioName
+    }).subscribe({
+      next: (newPotfolio) => {
+        this.portfolios.push(newPotfolio);
+        this.selectPortfolio(newPotfolio.id);
+
+        this.showCreatePortfolioModal = false;
+        this.portfolioName = '';
+
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.error = ('Erro ao criar Portfolio')
+        console.error(error);
+      }
+    })
 
   }
 
   protected createAsset() {
+    if (!this.selectedPortfolio || !this.assetData.ticker || !this.assetData.name || !this.assetData.type || this.assetData.quantity! <= 0 || this.assetData.purchasePrice! <= 0 || this.assetData.currentPrice! <= 0) {
+      this.error = "Dados do ativo inválidos";
+      return;
+    }
 
+    this.isLoading = true;
+    this.portfolioService.addAsset(this.selectedPortfolio!.id, this.assetData as Omit<Asset, 'id'>).subscribe({
+      next: (portfolioNewAsset) => {
+        this.selectedPortfolio = portfolioNewAsset;
+      },
+      error: (error) => {
+        this.error = "Erro ao adicionar asset"
+        console.error(error);
+      }
+    });
   }
 
   protected deletePortfolio(id: string) {
