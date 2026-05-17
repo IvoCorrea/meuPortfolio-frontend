@@ -12,34 +12,28 @@ export class AuthInterceptor implements HttpInterceptor {
     constructor(private authService: AuthService) { }
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        const isPublicRoute = req.url.includes('/auth/');
+        const isAuthRoute = req.url.includes('/auth/');
+        const accessToken = this.authService.getAccessToken();
 
-        if (this.authService.hasValidToken() && !isPublicRoute) {
-            req = this.addTokenToRequest(req);
+        if (accessToken && !isAuthRoute) {
+            req = this.addTokenToRequest(req, accessToken);
         }
 
-        if (this.authService.hasValidToken()) {
-            req = this.addTokenToRequest(req);
-        }
         return next.handle(req).pipe(
             catchError((error: HttpErrorResponse) => {
-
-                if (error.status === 401 && !this.isRefreshing) {
-                    return this.handle401Error(req, next);
+                if (error.status !== 401 || isAuthRoute) {
+                    return throwError(() => error);
                 }
 
-                if (error.status === 401 && this.isRefreshing) {
+                if (this.isRefreshing) {
                     return this.refreshTokenSubject.pipe(
                         filter((token) => token !== null),
                         take(1),
-                        switchMap((token) => {
-                            req = this.addTokenToRequest(req, token!);
-                            return next.handle(req);
-                        })
+                        switchMap((token) => next.handle(this.addTokenToRequest(req, token!)))
                     );
                 }
 
-                return throwError(() => error);
+                return this.handle401Error(req, next);
             })
         );
     }
@@ -57,12 +51,11 @@ export class AuthInterceptor implements HttpInterceptor {
                 this.isRefreshing = false;
                 this.refreshTokenSubject.next(response.accessToken);
 
-                request = this.addTokenToRequest(request, response.accessToken);
-                return next.handle(request);
+                return next.handle(this.addTokenToRequest(request, response.accessToken));
             }),
             catchError((error) => {
                 this.isRefreshing = false;
-                this.authService.logout;
+                this.authService.logout();
                 return throwError(() => error);
             })
         )
@@ -70,7 +63,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     private addTokenToRequest(
         request: HttpRequest<any>,
-        token?: string
+        token: string
     ): HttpRequest<any> {
         const accessToken = token || this.authService.getAccessToken();
 
