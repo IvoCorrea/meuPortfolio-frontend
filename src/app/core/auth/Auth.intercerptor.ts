@@ -15,11 +15,11 @@ export class AuthInterceptor implements HttpInterceptor {
         const isPublicRoute = req.url.includes('/auth/');
 
         if (this.authService.hasValidToken() && !isPublicRoute) {
-            req = this.addTokenToRequest(req);
+            req = this.addTokenToRequest(req, this.authService.getAccessToken()!);
         }
 
         if (this.authService.hasValidToken()) {
-            req = this.addTokenToRequest(req);
+            req = this.addTokenToRequest(req, this.authService.getAccessToken()!);
         }
         return next.handle(req).pipe(
             catchError((error: HttpErrorResponse) => {
@@ -70,7 +70,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
     private addTokenToRequest(
         request: HttpRequest<any>,
-        token?: string
+        token: string
     ): HttpRequest<any> {
         const accessToken = token || this.authService.getAccessToken();
 
