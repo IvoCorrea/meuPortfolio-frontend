@@ -23,6 +23,7 @@ export class AuthService {
 
     public login(email: string, password: string): Observable<AuthResponse> {
         const request: LoginRequest = { email, password };
+        this.clearTokens();
 
         return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, request)
             .pipe(
@@ -39,6 +40,7 @@ export class AuthService {
 
     public register(email: string, username: string, password: string): Observable<AuthResponse> {
         const request: RegisterRequest = { email, password, username };
+        this.clearTokens();
 
         return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, request).pipe(
             tap((response) => {
@@ -53,8 +55,7 @@ export class AuthService {
     }
 
     public logout(): void {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        this.clearTokens();
         this.isAuthenticatedSubject.next(false);
         this.currentUserSubject.next(null);
     }
@@ -103,6 +104,14 @@ export class AuthService {
     private saveTokens(accessToken: string, refreshToken: string): void {
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
+    }
+
+    /**
+     * Remove os tokens salvos antes de iniciar uma nova sessão.
+     */
+    private clearTokens(): void {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
     }
 
     /**
