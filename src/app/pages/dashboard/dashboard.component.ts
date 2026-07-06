@@ -49,7 +49,7 @@ export class DashboardComponent {
 
     this.portfolioService.getPortfolios().subscribe({
       next: (portfolios) => {
-        portfolios = portfolios;
+        this.portfolios = portfolios;
         this.isLoading = false;
 
         if (portfolios.length > 0) {
