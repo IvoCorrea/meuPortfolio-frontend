@@ -120,18 +120,43 @@ export class DashboardComponent {
   }
 
   protected createAsset() {
+     console.log('🟡 assetData:', this.assetData);
+  console.log('🟡 selectedPortfolio:', this.selectedPortfolio);
+    if (typeof this.assetData.purchasePrice === 'string') {
+      this.assetData.purchasePrice = parseFloat((this.assetData.purchasePrice as string).replace(',', '.'));
+    }
+    if (typeof this.assetData.currentPrice === 'string') {
+      this.assetData.currentPrice = parseFloat((this.assetData.currentPrice as string).replace(',', '.'));
+    }
     if (!this.selectedPortfolio || !this.assetData.ticker || !this.assetData.name || !this.assetData.type || this.assetData.quantity! <= 0 || this.assetData.purchasePrice! <= 0 || this.assetData.currentPrice! <= 0) {
       this.error = "Dados do ativo inválidos";
       return;
     }
 
     this.isLoading = true;
-    this.portfolioService.addAsset(this.selectedPortfolio!.id, this.assetData as Omit<Asset, 'id'>).subscribe({
+    this.portfolioService.addAsset(
+      this.selectedPortfolio!.id,
+      this.assetData as Omit<Asset, 'id'>
+    ).subscribe({
       next: (portfolioNewAsset) => {
         this.selectedPortfolio = portfolioNewAsset;
+
+        this.showAddAssetModal = false;
+        this.isLoading = false;
+
+        this.assetData = {
+          ticker: '',
+          name: '',
+          type: 'ACAO',
+          currentPrice: 0,
+          purchasePrice: 0,
+          quantity: 0,
+          totalValue: 0,
+        }
       },
       error: (error) => {
         this.error = "Erro ao adicionar asset"
+        this.isLoading = false;
         console.error(error);
       }
     });
