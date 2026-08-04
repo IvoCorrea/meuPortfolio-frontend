@@ -163,6 +163,10 @@ export class DashboardComponent {
   }
 
   protected deletePortfolio(id: string) {
+    if(!confirm("Tem certeza que deseja deletar este portfolio? Essa ação não pode ser desfeita.")){
+      return;
+    }
+
     this.portfolioService.deletePortfolio(id).subscribe({
       next: () => {
         this.selectedPortfolio = null;
@@ -176,6 +180,10 @@ export class DashboardComponent {
   }
 
   protected deleteAsset(portfolioId: string, assetId: string) {
+    if(!confirm("Tem certeza que deseja deletar este ativo?")){
+      return;
+    }
+
     this.portfolioService.deleteAsset(portfolioId, assetId).subscribe({
       next: () => {
         this.selectedPortfolio!.assets = this.selectedPortfolio!.assets.filter(a => a.id !== assetId);
