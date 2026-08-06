@@ -74,7 +74,7 @@
           @for (asset of selectedPortfolio.assets; track asset.id) {
           <div class="asset-card">
             <div class="asset-info">
-              <h4>{{ asset.name }}</h4>
+              <h4>{{ asset.ticker }}</h4>
               <p class="asset-symbol">{{ asset.ticker }}</p>
             </div>
 
@@ -98,7 +98,7 @@
             </div>
 
             <div class="asset-actions">
-              <button class="btn-edit" (click)="showAddAssetModal = true">Editar</button>
+              <button class="btn-edit" (click)="openEditAssetModal(asset)">Editar</button>
               <button class="btn-delete" (click)="deleteAsset(selectedPortfolio.id,asset.id)">Deletar</button>
             </div>
           </div>
@@ -178,18 +178,6 @@
               </div>
 
               <div class="form-group">
-                <label for="asset-name">Nome</label>
-                <input 
-                type="text"
-                id="asset-name"
-                [(ngModel)]="assetData.name"
-                name="name"
-                placeholder="Ex: Petrobras"
-                required
-                />
-              </div>
-
-              <div class="form-group">
                 <label for="asset-type">Tipo</label>
                 <select class="form-control" name="type" id="asset-type" [(ngModel)]="assetData.type" required>
                   <option value="ACAO">Ação</option>
@@ -226,5 +214,61 @@
         </div>
       </div>
     }
+    <!-- MODAL: Editar Asset -->
+    @if (showEditAssetModal) {
+  <div class="modal-overlay" (click)="showEditAssetModal = false">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <h2>Editar Ativo</h2>
+        <button class="modal-close" (click)="showEditAssetModal = false">×</button>
+      </div>
+
+      <div class="modal-body">
+        <form (ngSubmit)="updateAsset()">
+          <div class="form-group">
+            <label for="edit-asset-ticker">Ticker</label>
+            <input type="text" id="edit-asset-ticker" [(ngModel)]="editAssetData.ticker" name="ticker" required />
+          </div>
+
+          <div class="form-group">
+            <label for="edit-asset-type">Tipo</label>
+            <select id="edit-asset-type" [(ngModel)]="editAssetData.type" name="type" required>
+              <option value="ACAO">Ação</option>
+              <option value="FUNDO">Fundo</option>
+              <option value="CRIPTO">Cripto</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-asset-quantity">Quantidade</label>
+            <input type="number" id="edit-asset-quantity" [(ngModel)]="editAssetData.quantity" name="quantity" required />
+          </div>
+
+          <div class="form-group">
+            <label for="edit-asset-purchase-price">Preço de Compra</label>
+            <input type="number" step="0.01" id="edit-asset-purchase-price" [(ngModel)]="editAssetData.purchasePrice" name="purchasePrice" required />
+          </div>
+
+          <div class="form-group">
+            <label for="edit-asset-current-price">Preço Atual</label>
+            <input type="number" step="0.01" id="edit-asset-current-price" [(ngModel)]="editAssetData.currentPrice" name="currentPrice" required />
+          </div>
+
+          @if (error) {
+            <div class="error-message">{{ error }}</div>
+          }
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="showEditAssetModal = false">Cancelar</button>
+            <button type="submit" class="btn-confirm" [disabled]="isLoading">
+              {{ isLoading ? 'Salvando...' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
   </main>
 </div>
