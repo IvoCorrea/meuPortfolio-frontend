@@ -1,7 +1,6 @@
 export interface Asset {
     id: string;
     ticker: string;
-    name: string;
     type: 'ACAO' | 'FUNDO' | 'CRIPTO'; // enum
     quantity: number;
     purchasePrice: number;

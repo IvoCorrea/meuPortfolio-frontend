@@ -25,9 +25,18 @@ export class DashboardComponent {
 
   protected portfolioName: string = '';
 
+  protected showEditAssetModal: boolean = false;
+  protected editingAssetId: string = '';
+  protected editAssetData: Partial<Asset> = {
+    ticker: '',
+    type: 'ACAO',
+    quantity: 0,
+    purchasePrice: 0,
+    currentPrice: 0
+  };
+
   protected assetData: Partial<Asset> = {
     ticker: '',
-    name: '',
     type: 'ACAO',
     quantity: 0,
     purchasePrice: 0,
@@ -120,15 +129,13 @@ export class DashboardComponent {
   }
 
   protected createAsset() {
-     console.log('🟡 assetData:', this.assetData);
-  console.log('🟡 selectedPortfolio:', this.selectedPortfolio);
     if (typeof this.assetData.purchasePrice === 'string') {
       this.assetData.purchasePrice = parseFloat((this.assetData.purchasePrice as string).replace(',', '.'));
     }
     if (typeof this.assetData.currentPrice === 'string') {
       this.assetData.currentPrice = parseFloat((this.assetData.currentPrice as string).replace(',', '.'));
     }
-    if (!this.selectedPortfolio || !this.assetData.ticker || !this.assetData.name || !this.assetData.type || this.assetData.quantity! <= 0 || this.assetData.purchasePrice! <= 0 || this.assetData.currentPrice! <= 0) {
+    if (!this.selectedPortfolio || !this.assetData.ticker || !this.assetData.type || this.assetData.quantity! <= 0 || this.assetData.purchasePrice! <= 0 || this.assetData.currentPrice! <= 0) {
       this.error = "Dados do ativo inválidos";
       return;
     }
@@ -144,10 +151,9 @@ export class DashboardComponent {
         this.showAddAssetModal = false;
         this.isLoading = false;
 
-        this.assetData = {
-          ticker: '',
-          name: '',
-          type: 'ACAO',
+      this.assetData = {
+        ticker: '',
+        type: 'ACAO',
           currentPrice: 0,
           purchasePrice: 0,
           quantity: 0,
@@ -163,7 +169,7 @@ export class DashboardComponent {
   }
 
   protected deletePortfolio(id: string) {
-    if(!confirm("Tem certeza que deseja deletar este portfolio? Essa ação não pode ser desfeita.")){
+    if (!confirm("Tem certeza que deseja deletar este portfolio? Essa ação não pode ser desfeita.")) {
       return;
     }
 
@@ -180,7 +186,7 @@ export class DashboardComponent {
   }
 
   protected deleteAsset(portfolioId: string, assetId: string) {
-    if(!confirm("Tem certeza que deseja deletar este ativo?")){
+    if (!confirm("Tem certeza que deseja deletar este ativo?")) {
       return;
     }
 
@@ -193,6 +199,63 @@ export class DashboardComponent {
         console.error(error);
       }
     });
+  }
+
+  protected openEditAssetModal(asset: Asset) {
+    this.editingAssetId = asset.id;
+    this.editAssetData = {
+      ticker: asset.ticker,
+      type: asset.type,
+      quantity: asset.quantity,
+      purchasePrice: asset.purchasePrice,
+      currentPrice: asset.currentPrice
+    };
+    this.showEditAssetModal = true;
+  }
+
+  protected updateAsset() {
+    if (typeof this.editAssetData.purchasePrice === 'string') {
+      this.editAssetData.purchasePrice = parseFloat((this.editAssetData.purchasePrice as string).replace(',', '.'));
+    }
+    if (typeof this.editAssetData.currentPrice === 'string') {
+      this.editAssetData.currentPrice = parseFloat((this.editAssetData.currentPrice as string).replace(',', '.'));
+    }
+
+    if (
+      !this.selectedPortfolio ||
+      !this.editingAssetId ||
+      !this.editAssetData.ticker ||
+    !this.editAssetData.type ||
+      !this.editAssetData.quantity ||
+      this.editAssetData.quantity <= 0 ||
+      !this.editAssetData.purchasePrice ||
+      this.editAssetData.purchasePrice <= 0 ||
+      !this.editAssetData.currentPrice ||
+      this.editAssetData.currentPrice <= 0
+    ) {
+      this.error = '';
+      this.showEditAssetModal = true;
+      return;
+    }
+
+    this.isLoading = true;
+    this.portfolioService.updateAsset(
+      this.selectedPortfolio!.id,
+      this.editingAssetId,
+      this.editAssetData as Asset
+    ).subscribe({
+      next: (updatePortfolio) => {
+        this.selectedPortfolio = updatePortfolio;
+        this.showEditAssetModal = false;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        this.error = 'Error ao atualizar ativo';
+        this.isLoading = false;
+        console.error(error);
+      }
+    })
+
   }
 
   protected logout() {
