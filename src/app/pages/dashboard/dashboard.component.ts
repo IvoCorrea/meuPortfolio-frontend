@@ -25,6 +25,9 @@ export class DashboardComponent {
 
   protected portfolioName: string = '';
 
+  protected showEditPortfolioModal: boolean = false;
+  protected editPortfolioName: string = '';
+
   protected showEditAssetModal: boolean = false;
   protected editingAssetId: string = '';
   protected editAssetData: Partial<Asset> = {
@@ -151,9 +154,9 @@ export class DashboardComponent {
         this.showAddAssetModal = false;
         this.isLoading = false;
 
-      this.assetData = {
-        ticker: '',
-        type: 'ACAO',
+        this.assetData = {
+          ticker: '',
+          type: 'ACAO',
           currentPrice: 0,
           purchasePrice: 0,
           quantity: 0,
@@ -225,7 +228,7 @@ export class DashboardComponent {
       !this.selectedPortfolio ||
       !this.editingAssetId ||
       !this.editAssetData.ticker ||
-    !this.editAssetData.type ||
+      !this.editAssetData.type ||
       !this.editAssetData.quantity ||
       this.editAssetData.quantity <= 0 ||
       !this.editAssetData.purchasePrice ||
@@ -256,6 +259,41 @@ export class DashboardComponent {
       }
     })
 
+  }
+
+  openEditPortfolioModal(): void {
+    if (!this.selectedPortfolio) return;
+    this.editPortfolioName = this.selectedPortfolio.name;
+    this.showEditPortfolioModal = true;
+  }
+
+  closeEditPortfolioModal(): void {
+    this.editPortfolioName = '';
+    this.showEditPortfolioModal = false;
+  }
+
+  updatePortfolio(): void {
+    if (!this.selectedPortfolio || !this.editPortfolioName.trim()) {
+      this.error = 'Nome do portfolio não pode ser vazio.';
+      return;
+    }
+
+    const id = this.selectedPortfolio.id;
+
+    this.portfolioService.updatePortfolio(id, { name: this.editPortfolioName.trim() }).subscribe({
+      next: (updated) => {
+        this.selectedPortfolio = updated;
+        const index = this.portfolios.findIndex(p => p.id === id);
+        if (index !== -1) {
+          this.portfolios[index] = updated;
+        }
+        this.closeEditPortfolioModal();
+      },
+      error: (err) => {
+        this.error = 'Error ao atualizar portfolio.';
+        console.error(err);
+      }
+    })
   }
 
   protected logout() {
