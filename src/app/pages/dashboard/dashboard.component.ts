@@ -205,6 +205,7 @@ export class DashboardComponent {
   }
 
   protected openEditAssetModal(asset: Asset) {
+    this.error = '';
     this.editingAssetId = asset.id;
     this.editAssetData = {
       ticker: asset.ticker,
@@ -217,6 +218,8 @@ export class DashboardComponent {
   }
 
   protected updateAsset() {
+    this.error = '';
+
     if (typeof this.editAssetData.purchasePrice === 'string') {
       this.editAssetData.purchasePrice = parseFloat((this.editAssetData.purchasePrice as string).replace(',', '.'));
     }
@@ -236,7 +239,7 @@ export class DashboardComponent {
       !this.editAssetData.currentPrice ||
       this.editAssetData.currentPrice <= 0
     ) {
-      this.error = '';
+      this.error = 'Dados do ativo inválidos';
       this.showEditAssetModal = true;
       return;
     }
@@ -249,11 +252,16 @@ export class DashboardComponent {
     ).subscribe({
       next: (updatePortfolio) => {
         this.selectedPortfolio = updatePortfolio;
+        const index = this.portfolios.findIndex(p => p.id === updatePortfolio.id);
+        if (index !== -1) {
+          this.portfolios[index] = updatePortfolio;
+        }
         this.showEditAssetModal = false;
         this.isLoading = false;
+        this.error = '';
       },
       error: (error) => {
-        this.error = 'Error ao atualizar ativo';
+        this.error = 'Erro ao atualizar ativo';
         this.isLoading = false;
         console.error(error);
       }
@@ -263,11 +271,13 @@ export class DashboardComponent {
 
   openEditPortfolioModal(): void {
     if (!this.selectedPortfolio) return;
+    this.error = '';
     this.editPortfolioName = this.selectedPortfolio.name;
     this.showEditPortfolioModal = true;
   }
 
   closeEditPortfolioModal(): void {
+    this.error = '';
     this.editPortfolioName = '';
     this.showEditPortfolioModal = false;
   }
@@ -279,6 +289,7 @@ export class DashboardComponent {
     }
 
     const id = this.selectedPortfolio.id;
+    this.isLoading = true;
 
     this.portfolioService.updatePortfolio(id, { name: this.editPortfolioName.trim() }).subscribe({
       next: (updated) => {
@@ -287,10 +298,13 @@ export class DashboardComponent {
         if (index !== -1) {
           this.portfolios[index] = updated;
         }
+        this.isLoading = false;
+        this.error = '';
         this.closeEditPortfolioModal();
       },
       error: (err) => {
-        this.error = 'Error ao atualizar portfolio.';
+        this.error = 'Erro ao atualizar portfolio.';
+        this.isLoading = false;
         console.error(err);
       }
     })
